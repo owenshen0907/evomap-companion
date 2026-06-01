@@ -415,6 +415,38 @@ async function syncPurchased({ override, type = null, since = null, maxPages = 1
   return { ok: true, action: 'sync', recalled: recalled.length, pages, total, capped: Boolean(cursor) };
 }
 
+// Pull every asset published by this account (across its nodes) into the recall
+// library — mirrors syncPurchased but for /a2a/assets/published-by-me, so your
+// own uploaded assets come back to this machine (includes drafts via status=all).
+async function syncPublished({ override, maxPages = 100 } = {}) {
+  const base = baseUrl(override);
+  const creds = store.getCredentials();
+  if (!creds || !creds.node_secret) {
+    return { ok: false, action: 'sync-published', error: 'not_bound', hint: 'Register and bind a node first.' };
+  }
+  let cursor = null;
+  let pages = 0;
+  const recalled = [];
+  do {
+    const res = await evomap.assetsPublishedByMe(base, { nodeId: creds.node_id, nodeSecret: creds.node_secret, limit: 100, cursor, status: 'all' });
+    store.logCall({ action: 'sync-published', ok: res.ok, status: res.status, error: res.error });
+    if (!res.ok || !res.json) {
+      return { ok: false, action: 'sync-published', error: res.error || 'sync_failed', status: res.status, recalled: recalled.length };
+    }
+    const payload = res.json.payload || res.json;
+    const assets = payload.assets || payload.results || [];
+    for (const asset of assets) {
+      if (!asset || !(asset.asset_id || asset.id)) continue;
+      recalled.push(store.saveRecalledAsset(asset));
+    }
+    cursor = payload.has_more ? (payload.next_cursor || null) : null;
+    pages += 1;
+  } while (cursor && pages < maxPages);
+  refreshIntegrations(override);
+  broadcast('recall', { count: recalled.length, synced: true });
+  return { ok: true, action: 'sync-published', recalled: recalled.length, pages, capped: Boolean(cursor) };
+}
+
 async function getPolicy(override) {
   const res = await evomap.policy(baseUrl(override));
   store.logCall({ action: 'policy', ok: res.ok, status: res.status });
@@ -731,6 +763,7 @@ const ROUTES = [
   ['POST', '/api/node/forget', async (req, res) => { store.clearCredentials(); broadcast('node', {}); sendJson(res, { ok: true, action: 'forget' }); }],
   ['POST', '/api/assets/fetch', async (req, res, url) => { const body = await readBody(req); const ids = body.asset_ids || body.assetIds || []; sendJson(res, await fetchAndRecall(ids, { override: url.searchParams.get('base') })); }],
   ['POST', '/api/recall/sync', async (req, res, url) => { const body = await readBody(req); sendJson(res, await syncPurchased({ override: url.searchParams.get('base'), type: body.type || null, since: body.since || null })); }],
+  ['POST', '/api/recall/sync-published', async (req, res, url) => sendJson(res, await syncPublished({ override: url.searchParams.get('base') }))],
   ['POST', '/api/recall/translate', async (req, res) => { const body = await readBody(req); sendJson(res, await translateRecall(body.lang)); }],
   ['POST', '/api/recall/remove', async (req, res) => { const body = await readBody(req); const remaining = store.removeRecalledAsset(body.asset_id || body.assetId); refreshIntegrations(); broadcast('recall', {}); sendJson(res, { ok: true, remaining }); }],
   ['POST', '/api/publish/draft', async (req, res) => { const body = await readBody(req); sendJson(res, stageDraft(body)); }],
@@ -847,6 +880,9 @@ async function main() {
     case 'sync-purchased':
       console.log(JSON.stringify(await syncPurchased({ override: args.base }), null, 2));
       return;
+    case 'sync-published':
+      console.log(JSON.stringify(await syncPublished({ override: args.base }), null, 2));
+      return;
     case 'reindex':
       console.log(JSON.stringify({ ok: true, action: 'reindex', count: store.rebuildRecallIndex() }, null, 2));
       return;
@@ -870,6 +906,7 @@ async function main() {
         '  policy                 list free official starter assets',
         '  fetch <asset_id...>    fetch full assets into the local recall cache',
         '  sync                   sync all account-owned (purchased) assets into the local recall cache',
+        '  sync-published         sync all assets published by this account back into the local recall cache',
         '  reindex                rebuild the recall index from the local cache (backfill classification fields)',
         '  recall                 list locally recalled assets',
         '  ui [--port N]          launch the local dashboard',

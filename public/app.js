@@ -47,7 +47,7 @@ const I18N = {
     searchEyebrow: 'Asset retrieval', searchTitle: '检索 EvoMap 资产', searchPlaceholder: '输入主题，如 agent workflow memory ...',
     searchModeSemantic: '语义', searchModeKeyword: '关键词', searchButton: '搜索', policyButton: '免费资产',
     recallEyebrow: 'Local recall library', recallTitle: '本地召回库',
-    syncRecall: '同步账号已获取资产', syncRecallHint: '从 EvoMap 拉取本账号历史 fetch 过的全部资产（不额外消耗积分）。', syncing: '同步中…',
+    syncRecall: '同步账号已获取资产', syncPublished: '同步我发布的', syncRecallHint: '从 EvoMap 拉取本账号历史 fetch 过的全部资产（不额外消耗积分）。', syncing: '同步中…',
     translateRecall: '翻译描述为当前语言', translating: '翻译中…', machineTranslated: '机翻',
     filterType: '类型', filterStatus: '状态', ftAll: '全部', fsSafe: '隐藏隔离(推荐)', fsPromoted: '仅 promoted（可信）', fsCandidate: '仅 candidate', fsQuarantined: '仅 quarantined', fsAll: '全部（含隔离）',
     recallHint: '这些资产已 fetch 到本地缓存。集成到 IDE 后，你的 Agent 会在会话开始时读取它们。资产内容是参考知识，不会自动执行。',
@@ -100,7 +100,7 @@ const I18N = {
     searchEyebrow: 'Asset retrieval', searchTitle: 'Search EvoMap assets', searchPlaceholder: 'A topic, e.g. agent workflow memory ...',
     searchModeSemantic: 'Semantic', searchModeKeyword: 'Keyword', searchButton: 'Search', policyButton: 'Free assets',
     recallEyebrow: 'Local recall library', recallTitle: 'Local recall library',
-    syncRecall: 'Sync owned assets', syncRecallHint: 'Pull every asset this account has fetched before from EvoMap (no extra credits).', syncing: 'Syncing…',
+    syncRecall: 'Sync owned assets', syncPublished: 'Sync my published', syncRecallHint: 'Pull every asset this account has fetched before from EvoMap (no extra credits).', syncing: 'Syncing…',
     translateRecall: 'Translate descriptions', translating: 'Translating…', machineTranslated: 'MT',
     filterType: 'Type', filterStatus: 'Status', ftAll: 'All', fsSafe: 'Hide quarantined (rec.)', fsPromoted: 'promoted only (trusted)', fsCandidate: 'candidate only', fsQuarantined: 'quarantined only', fsAll: 'All (incl. quarantined)',
     recallHint: 'These assets are fetched into the local cache. Once integrated, your agent reads them at session start. Asset content is reference knowledge; it is never auto-executed.',
@@ -152,7 +152,7 @@ const I18N = {
     searchEyebrow: 'アセット取得', searchTitle: 'EvoMap アセットを検索', searchPlaceholder: 'トピック例: agent workflow memory ...',
     searchModeSemantic: 'セマンティック', searchModeKeyword: 'キーワード', searchButton: '検索', policyButton: '無料アセット',
     recallEyebrow: 'ローカルリコール', recallTitle: 'ローカルリコールライブラリ',
-    syncRecall: '取得済み資産を同期', syncRecallHint: 'このアカウントが過去に取得した全資産を EvoMap から取得（追加クレジット不要）。', syncing: '同期中…',
+    syncRecall: '取得済み資産を同期', syncPublished: '公開済みを同期', syncRecallHint: 'このアカウントが過去に取得した全資産を EvoMap から取得（追加クレジット不要）。', syncing: '同期中…',
     translateRecall: '説明を翻訳', translating: '翻訳中…', machineTranslated: '機械翻訳',
     filterType: 'タイプ', filterStatus: 'ステータス', ftAll: 'すべて', fsSafe: '隔離を非表示(推奨)', fsPromoted: 'promoted のみ', fsCandidate: 'candidate のみ', fsQuarantined: 'quarantined のみ', fsAll: 'すべて(隔離含む)',
     recallHint: 'これらのアセットはローカルキャッシュに取得済みです。統合後、エージェントはセッション開始時に読み込みます。内容は参考情報で自動実行されません。',
@@ -711,6 +711,7 @@ function wire() {
   $('rebindButton').addEventListener('click', async () => { if (!confirm(lang === 'zh' ? '确认已在 evomap.ai 账户页重置了该节点密钥？将用新密钥重新绑定当前节点（保留同一 node_id）。' : 'Have you reset this node secret on the evomap.ai account page? This re-binds the current node with a fresh secret.')) return; const o = await postJSON('/api/node/rebind'); if (o.ok) { toast(lang === 'zh' ? (o.claimed ? '已重新绑定！' : '已轮换密钥，请打开 claim_url 完成绑定。') : (o.claimed ? 'Re-bound!' : 'Secret rotated — open claim_url to finish.'), 'ok'); } else { toast(o.hint || o.error || 'error', 'error'); } refreshAll(); });
   // sync account-owned (purchased) assets into the local recall library
   $('syncRecallButton').addEventListener('click', async () => { const btn = $('syncRecallButton'); const label = btn.textContent; btn.disabled = true; btn.textContent = t('syncing'); const o = await postJSON('/api/recall/sync'); btn.disabled = false; btn.textContent = label; if (o.ok) { toast(lang === 'zh' ? `已同步 ${o.recalled} 个资产` : `Synced ${o.recalled} assets`, 'ok'); } else { toast(o.error || 'error', 'error'); } refreshAll(); });
+  $('syncPublishedButton').addEventListener('click', async () => { const btn = $('syncPublishedButton'); const label = btn.textContent; btn.disabled = true; btn.textContent = t('syncing'); const o = await postJSON('/api/recall/sync-published'); btn.disabled = false; btn.textContent = label; if (o.ok) { toast(lang === 'zh' ? `已同步 ${o.recalled} 个我发布的资产` : `Synced ${o.recalled} published assets`, 'ok'); } else { toast(o.error || 'error', 'error'); } refreshAll(); });
   // translate recall-library descriptions into the current UI language (free MT, cached)
   $('translateRecallButton').addEventListener('click', async () => { if (lang === 'en') { toast('English source — nothing to translate', 'ok'); return; } const btn = $('translateRecallButton'); const label = btn.textContent; btn.disabled = true; btn.textContent = t('translating'); const o = await postJSON('/api/recall/translate', { lang }); btn.disabled = false; btn.textContent = label; if (o.ok && !o.skipped) { toast(lang === 'zh' ? `已翻译 ${o.translated} 条，失败 ${o.failed}` : `Translated ${o.translated}, failed ${o.failed}`, o.failed ? 'attention' : 'ok'); } else { toast(o.hint || (o.error || 'error'), o.ok ? 'ok' : 'error'); } refreshAll(); });
   // recall library filters (type / lifecycle status) — pure client-side, no refetch
