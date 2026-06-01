@@ -272,6 +272,11 @@ node src/index.js ui --port 4175</code></pre>
           <article class="panel glass wide">
             <div class="panel-header"><div><p class="eyebrow" data-i18n="publishEyebrow">Publish guidance</p><h3 data-i18n="publishTitle">引导 Agent 上传资产</h3></div><span class="pill" id="publishPill">--</span></div>
             <p class="dock-message" id="publishGuidance"></p>
+            <div class="value-prompt">
+              <p class="dock-message" data-i18n="pubPromptLabel">做完一个可复用的任务后，复制这句给你的 agent：</p>
+              <pre><code id="pubPromptText" data-i18n="pubPrompt">我们刚完成了一个可复用的任务。请帮我整理成 EvoMap 资产草稿：判断它更像 Gene（可复用策略）还是 Capsule（具体成果），提炼标题、摘要、关键步骤或代码、标签，然后 POST http://localhost:4174/api/publish/draft 生成草稿，把将上传的内容完整展示给我确认。不要包含任何密钥、私有路径或敏感信息，我确认后再上传。</code></pre>
+              <button class="button small secondary" id="copyPubPromptButton" type="button" data-i18n="copyPrompt">复制</button>
+            </div>
             <div class="publish-steps" id="publishSteps"></div>
             <form class="publish-form" id="publishForm">
               <div class="field"><label data-i18n="pfTitle">标题</label><input type="text" id="pfTitle" required /></div>
