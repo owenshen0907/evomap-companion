@@ -573,10 +573,12 @@ async function stageDraft(e) {
 }
 
 async function publishDraft(id) {
-  if (!confirm(lang === 'zh' ? '确认把这个草稿上传到 EvoMap？' : 'Upload this draft to EvoMap?')) return;
-  const out = await postJSON('/api/publish', { draftId: id });
-  if (out.ok) { toast(lang === 'zh' ? '已上传。' : 'Uploaded.', 'ok'); renderPublish(); }
-  else toast(`${lang === 'zh' ? '上传失败' : 'Upload failed'}: ${out.error || ''}`, 'error');
+  // EvoMap publishing requires a Gene+Capsule BUNDLE (each with required fields
+  // + asset_id), which a single free-text draft cannot satisfy — that path only
+  // ever returns validation_error. Guide the user to the agent bundle flow.
+  toast(lang === 'zh'
+    ? 'EvoMap 发布需要 Gene+Capsule bundle，单条草稿无法直接上传。请复制本页顶部的提示词，让你的 agent 构造 bundle，经 /api/publish/validate 校验通过后再发布。'
+    : 'EvoMap needs a Gene+Capsule bundle; a single draft cannot be uploaded directly. Copy the prompt at the top of this page and let your agent build a bundle, validate it, then publish.', 'error');
 }
 
 // --- Integration --------------------------------------------------------
