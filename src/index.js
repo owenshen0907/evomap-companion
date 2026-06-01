@@ -12,6 +12,7 @@ const store = require('./store');
 const evomap = require('./evomap');
 const recall = require('./recall');
 const translate = require('./translate');
+const assetid = require('./assetid');
 
 const ROOT = path.resolve(__dirname, '..');
 const PUBLIC_DIR = path.join(ROOT, 'public');
@@ -567,17 +568,16 @@ async function publishDraft(draftId, { override } = {}) {
 async function publishBundle(assets, { dryRun = false, override } = {}) {
   const action = dryRun ? 'validate' : 'publish';
   if (!Array.isArray(assets) || assets.length < 2) {
-    return { ok: false, action, error: 'bundle_required', hint: 'payload.assets must contain at least a Gene and a Capsule, each with a precomputed asset_id (sha256 via @evomap/gep-sdk).' };
-  }
-  const missingId = assets.find((a) => !a || !a.asset_id);
-  if (missingId) {
-    return { ok: false, action, error: 'asset_id_missing', hint: 'Each asset needs a precomputed asset_id = sha256 of its canonical JSON (excluding asset_id). Use @evomap/gep-sdk computeAssetId.' };
+    return { ok: false, action, error: 'bundle_required', hint: 'payload.assets must contain at least a Gene and a Capsule.' };
   }
   const creds = store.getCredentials();
   if (!creds || !creds.node_secret || !creds.claimed) {
     return { ok: false, action, error: 'not_bound', hint: 'Bind a node before publishing.' };
   }
-  const res = await evomap.publishBundle(baseUrl(override), assets, { nodeId: creds.node_id, nodeSecret: creds.node_secret, dryRun });
+  // Auto-compute any missing asset_id (byte-compatible with @evomap/gep-sdk) so
+  // the agent only supplies content; the hub recomputes the id and must match.
+  const prepared = assets.map((a) => (a && typeof a === 'object' && !a.asset_id ? { ...a, asset_id: assetid.computeAssetId(a) } : a));
+  const res = await evomap.publishBundle(baseUrl(override), prepared, { nodeId: creds.node_id, nodeSecret: creds.node_secret, dryRun });
   store.logCall({ action, ok: res.ok, status: res.status, error: res.error });
   const payload = (res.json && (res.json.payload || res.json)) || {};
   if (!res.ok) {
@@ -804,6 +804,7 @@ const ROUTES = [
   ['POST', '/api/publish', async (req, res, url) => { const body = await readBody(req); sendJson(res, await publishDraft(body.draftId || body.id, { override: url.searchParams.get('base') })); }],
   ['POST', '/api/publish/validate', async (req, res, url) => { const body = await readBody(req); sendJson(res, await publishBundle(body.assets, { dryRun: true, override: url.searchParams.get('base') })); }],
   ['POST', '/api/publish/bundle', async (req, res, url) => { const body = await readBody(req); sendJson(res, await publishBundle(body.assets, { dryRun: false, override: url.searchParams.get('base') })); }],
+  ['POST', '/api/publish/compute-id', async (req, res) => { const body = await readBody(req); const asset = body.asset || body; const id = assetid.computeAssetId(asset); sendJson(res, { ok: Boolean(id), asset_id: id }); }],
   ['POST', '/api/integrate/setup', async (req, res, url) => {
     const platform = url.searchParams.get('platform');
     const out = recall.writeIntegration(platform, {
