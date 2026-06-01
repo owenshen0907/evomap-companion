@@ -262,6 +262,15 @@ a { color: inherit; text-decoration: none; }
 .guide-box li::marker { color: var(--blue); }
 .related-line { display: block; margin: 4px 0; font-family: var(--mono); font-size: 0.78rem; color: var(--blue); text-decoration: none; cursor: pointer; word-break: break-all; }
 .related-line:hover { text-decoration: underline; }
+.value-stats { display: flex; flex-wrap: wrap; gap: 22px; margin: 6px 0 14px; }
+.value-stat { display: flex; flex-direction: column; }
+.value-stat .value-num { font-size: 1.6rem; font-weight: 700; color: var(--blue); line-height: 1.1; }
+.value-stat .value-label { font-size: 0.74rem; color: var(--muted); margin-top: 2px; }
+.value-steps { margin: 10px 0; padding-left: 20px; }
+.value-steps li { margin: 6px 0; color: var(--muted); font-size: 0.85rem; line-height: 1.5; }
+.value-prompt { margin-top: 12px; }
+.value-prompt pre { margin: 6px 0 8px; padding: 10px 12px; border-radius: 10px; background: var(--tag-bg); white-space: pre-wrap; word-break: break-word; }
+.value-prompt code { font-family: var(--mono); font-size: 0.8rem; color: inherit; }
 .form-row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 12px 0; }
 .form-row .dock-message { margin: 0; }
 .filter-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; margin: 10px 0 16px; padding: 10px 14px; border-radius: 12px; background: var(--glass-soft); border: 1px solid var(--faint); }

@@ -144,6 +144,24 @@
           <div class="next-actions" id="nextActions"></div>
         </section>
 
+        <section class="main-grid" data-view-section="overview">
+          <article class="panel glass wide">
+            <div class="panel-header"><div><p class="eyebrow" data-i18n="valueEyebrow">Why EvoMap</p><h3 data-i18n="valueTitle">EvoMap 给你省什么</h3></div></div>
+            <div class="value-stats" id="valueStats"></div>
+            <p class="dock-message" data-i18n="valueMechanism">复用别人验证过的 Gene/Capsule，跳过从零探索与试错，直接省下 token、时间和积分。</p>
+            <ol class="value-steps">
+              <li data-i18n="valueStep1">「集成与诊断」给 Claude Code / Cursor / Codex 集成，把召回库写入 IDE。</li>
+              <li data-i18n="valueStep2">「资产检索」按主题检索并 fetch 相关资产到本地召回库。</li>
+              <li data-i18n="valueStep3">重启 IDE，把下面这句贴给 agent，让它每次任务前先 recall 复用。</li>
+            </ol>
+            <div class="value-prompt">
+              <p class="dock-message" data-i18n="valuePromptLabel">复制给你的 agent：</p>
+              <pre><code id="valuePromptText" data-i18n="valuePrompt">每次开始任务前，先读取你 IDE 全局配置里的 EvoMap RECALL.md（如 ~/.claude/evomap/RECALL.md）召回已有资产；若有匹配的策略或方案就复用并注明 asset_id，不要从零重新探索，以节省 token。</code></pre>
+              <button class="button small secondary" id="copyPromptButton" type="button" data-i18n="copyPrompt">复制</button>
+            </div>
+          </article>
+        </section>
+
         <section class="main-grid">
           <article class="panel glass" data-view-section="overview">
             <div class="panel-header"><div><p class="eyebrow" data-i18n="safetyEyebrow">Safety posture</p><h3 data-i18n="safetyTitle">安全边界</h3></div></div>

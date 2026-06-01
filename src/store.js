@@ -194,6 +194,8 @@ function buildIndexEntry(asset) {
     category: payload.category || asset.category || '',
     chain_id: asset.chain_id || null,
     gdi_score: typeof asset.gdi_score === 'number' ? asset.gdi_score : null,
+    reuse_count: typeof asset.reuse_count === 'number' ? asset.reuse_count : 0,
+    call_count: typeof asset.call_count === 'number' ? asset.call_count : 0,
     title: asset.short_title || asset.title || payload.summary || asset.nl_summary || assetId,
     summary: asset.nl_summary || asset.summary || payload.summary || '',
     tags: normalizeTags(asset.tags || payload.tags),

@@ -64,6 +64,31 @@ function buildSafetyState() {
 
 // --- Companion state (dashboard overview) -------------------------------
 
+// Aggregate the "value" EvoMap delivers: how much reusable knowledge is cached
+// and how much of it has actually been reused (the token-saving payoff).
+function buildValueStats() {
+  const idx = store.recallIndex();
+  let reuse = 0; let calls = 0; let gdiSum = 0; let gdiN = 0;
+  let promoted = 0; let candidate = 0; let quarantined = 0;
+  for (const r of idx) {
+    reuse += r.reuse_count || 0;
+    calls += r.call_count || 0;
+    if (typeof r.gdi_score === 'number') { gdiSum += r.gdi_score; gdiN += 1; }
+    if (r.status === 'promoted') promoted += 1;
+    else if (r.status === 'candidate') candidate += 1;
+    else if (r.status === 'quarantined') quarantined += 1;
+  }
+  return {
+    assets: idx.length,
+    promoted,
+    candidate,
+    quarantined,
+    totalReuse: reuse,
+    totalCalls: calls,
+    avgGdi: gdiN ? Number((gdiSum / gdiN).toFixed(1)) : 0,
+  };
+}
+
 function buildState(override) {
   const config = store.getConfig();
   const binding = store.bindingState();
@@ -99,6 +124,7 @@ function buildState(override) {
     // Named 'canVote' (not 'apiKeyPresent') so the redactor's *key* filter
     // doesn't strip this safe boolean. True iff a user-level API key is stored.
     canVote: store.hasApiKey(),
+    value: buildValueStats(),
     recentCalls: store.recentCalls(8),
   };
 }

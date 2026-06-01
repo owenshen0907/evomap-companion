@@ -43,6 +43,7 @@ const I18N = {
     bindHelpTip4: '密钥（node_secret）只存在本机（0600 权限），永不上传，界面只显示「是否存在」。不要把它贴进聊天或截图。',
     bindHelpTip5: '本工具每 10 分钟自动发一次心跳保活（Hub 约 15 分钟无心跳才标记离线）。只要服务在运行（建议 pm2 托管）节点就保持在线；服务停了才会离线，且离线也不影响用现有密钥检索 / 获取资产。可用环境变量 EVOMAP_HEARTBEAT_MS 调整间隔（设 0 关闭）。',
     apiKeyTitle: 'EvoMap API Key（用户级操作，如投票）', apiKeyHint: 'node_secret 是 agent 身份，无法执行投票等「用户级」操作。在 evomap.ai 账户 → API Keys 生成 ek_ 开头的 API Key（创建需 premium / ultra 套餐）填到这里，即可代表你的账号投票。仅存本机 0600，永不回显。', apiKeyGet: '去 evomap.ai 生成 Key →', apiKeySave: '保存', apiKeyForget: '清除', apiKeySet: '已配置 •••', apiKeyNotSet: '未配置', voteUp: '赞', voteDown: '踩', voted: '已投票', voteRemoved: '已取消投票',
+    valueEyebrow: 'Why EvoMap', valueTitle: 'EvoMap 给你省什么', valueMechanism: '复用别人验证过的 Gene / Capsule，跳过从零探索与试错，直接省下 token、时间和积分。命中越多越省。', valueStep1: '「集成与诊断」给 Claude Code / Cursor / Codex 集成，把召回库写入 IDE。', valueStep2: '「资产检索」按你的主题检索并 fetch 相关资产到本地召回库。', valueStep3: '重启 IDE，把下面这句贴给 agent，让它每次任务前先 recall 复用。', valuePromptLabel: '复制给你的 agent：', valuePrompt: '每次开始任务前，先读取你 IDE 全局配置里的 EvoMap RECALL.md（如 ~/.claude/evomap/RECALL.md）召回已有资产；若有匹配的策略或方案就复用并注明 asset_id，不要从零重新探索，以节省 token。需要更多时调用 http://localhost:4174/api/assets/discover?mode=semantic&q=<主题>。', copyPrompt: '复制', copied: '已复制',
     searchEyebrow: 'Asset retrieval', searchTitle: '检索 EvoMap 资产', searchPlaceholder: '输入主题，如 agent workflow memory ...',
     searchModeSemantic: '语义', searchModeKeyword: '关键词', searchButton: '搜索', policyButton: '免费资产',
     recallEyebrow: 'Local recall library', recallTitle: '本地召回库',
@@ -95,6 +96,7 @@ const I18N = {
     bindHelpTip4: 'The secret (node_secret) lives only on this machine (chmod 0600), is never uploaded, and the UI only shows whether one exists. Never paste it into chat or screenshots.',
     bindHelpTip5: 'This tool auto-sends a heartbeat every 10 min to stay online (the Hub marks a node offline only after ~15 min of silence). As long as the service is running (pm2 recommended) the node stays online; it goes offline only if the service stops, and even then searching / fetching with the existing secret still works. Tune the interval with EVOMAP_HEARTBEAT_MS (set 0 to disable).',
     apiKeyTitle: 'EvoMap API Key (user-level actions, e.g. voting)', apiKeyHint: 'node_secret is the agent identity and cannot perform user-level actions like voting. Generate an ek_ API key in your evomap.ai account → API Keys (requires premium / ultra plan) and paste it here to vote on behalf of your account. Stored 0600 locally, never echoed.', apiKeyGet: 'Generate on evomap.ai →', apiKeySave: 'Save', apiKeyForget: 'Clear', apiKeySet: 'Configured •••', apiKeyNotSet: 'Not set', voteUp: 'Upvote', voteDown: 'Downvote', voted: 'Voted', voteRemoved: 'Vote removed',
+    valueEyebrow: 'Why EvoMap', valueTitle: 'What EvoMap saves you', valueMechanism: 'Reuse a verified Gene / Capsule to skip exploration and trial-and-error — saving tokens, time and credits. The more you reuse, the more you save.', valueStep1: 'Integrate Claude Code / Cursor / Codex on the Integration page so the recall library is written into your IDE.', valueStep2: 'Search by your topic and fetch relevant assets into the local recall library.', valueStep3: 'Restart your IDE and paste the line below to your agent so it recalls first on every task.', valuePromptLabel: 'Copy to your agent:', valuePrompt: 'Before starting any task, first read the EvoMap RECALL.md in your IDE global config (e.g. ~/.claude/evomap/RECALL.md) to recall cached assets; if a matching strategy or fix exists, reuse it and cite the asset_id instead of solving from scratch, to save tokens. Need more? Call http://localhost:4174/api/assets/discover?mode=semantic&q=<topic>.', copyPrompt: 'Copy', copied: 'Copied',
     searchEyebrow: 'Asset retrieval', searchTitle: 'Search EvoMap assets', searchPlaceholder: 'A topic, e.g. agent workflow memory ...',
     searchModeSemantic: 'Semantic', searchModeKeyword: 'Keyword', searchButton: 'Search', policyButton: 'Free assets',
     recallEyebrow: 'Local recall library', recallTitle: 'Local recall library',
@@ -146,6 +148,7 @@ const I18N = {
     bindHelpTip4: '鍵（node_secret）は本機のみに保存（chmod 0600）、アップロードされず、UI は存在有無のみ表示します。チャットやスクショに貼らないでください。',
     bindHelpTip5: '本ツールは10分ごとに自動でハートビートを送りオンラインを維持します（Hub は約15分無音で初めてオフライン扱い）。サービス稼働中（pm2 推奨）はノードがオンラインを保ち、停止時のみオフラインになります。その場合でも既存の鍵での検索 / 取得は可能です。間隔は EVOMAP_HEARTBEAT_MS で調整（0 で無効）。',
     apiKeyTitle: 'EvoMap API Key（投票などユーザー操作）', apiKeyHint: 'node_secret はエージェント識別子で、投票などのユーザー操作はできません。evomap.ai のアカウント → API Keys で ek_ で始まる API キーを生成（premium / ultra プランが必要）し、ここに貼ると、アカウントとして投票できます。本機に0600で保存、表示しません。', apiKeyGet: 'evomap.ai で生成 →', apiKeySave: '保存', apiKeyForget: 'クリア', apiKeySet: '設定済み •••', apiKeyNotSet: '未設定', voteUp: '高評価', voteDown: '低評価', voted: '投票しました', voteRemoved: '投票を取消',
+    valueEyebrow: 'Why EvoMap', valueTitle: 'EvoMap で何が省ける', valueMechanism: '検証済みの Gene / Capsule を再利用し、ゼロからの探索と試行錯誤を省く — トークン・時間・クレジットを節約。再利用するほど省ける。', valueStep1: '「統合」で Claude Code / Cursor / Codex に統合し、リコールライブラリを IDE に書き込む。', valueStep2: '「資産検索」でトピック検索し、関連資産をローカルに fetch。', valueStep3: 'IDE を再起動し、下の一文を agent に貼り、毎タスク開始時にまず recall させる。', valuePromptLabel: 'agent にコピー：', valuePrompt: 'タスク開始前に、IDE のグローバル設定内の EvoMap RECALL.md（例 ~/.claude/evomap/RECALL.md）を読み、キャッシュ済み資産を recall。一致する戦略や修正があれば asset_id を明記して再利用し、ゼロから解かずトークンを節約する。さらに必要なら http://localhost:4174/api/assets/discover?mode=semantic&q=<トピック> を呼ぶ。', copyPrompt: 'コピー', copied: 'コピーしました',
     searchEyebrow: 'アセット取得', searchTitle: 'EvoMap アセットを検索', searchPlaceholder: 'トピック例: agent workflow memory ...',
     searchModeSemantic: 'セマンティック', searchModeKeyword: 'キーワード', searchButton: '検索', policyButton: '無料アセット',
     recallEyebrow: 'ローカルリコール', recallTitle: 'ローカルリコールライブラリ',
@@ -264,6 +267,18 @@ function renderOverview() {
   if (b.claimed) actions.push(`<button class="button secondary" data-action="goto" data-view="search">${t('searchTitle')}</button>`);
   if (recalled > 0 && !integrated) actions.push(`<button class="button secondary" data-action="goto" data-view="integration">${t('integTitle')}</button>`);
   $('nextActions').innerHTML = actions.join('') || `<span class="empty">${lang === 'zh' ? '一切就绪。' : 'All set.'}</span>`;
+
+  // value stats
+  const v = STATE.value || {};
+  const vs = document.getElementById('valueStats');
+  if (vs) {
+    vs.innerHTML = [
+      [v.assets || 0, lang === 'zh' ? '已召回资产' : 'cached'],
+      [v.promoted || 0, lang === 'zh' ? '可信 (promoted)' : 'trusted'],
+      [v.totalReuse || 0, lang === 'zh' ? '累计复用' : 'reuses'],
+      [v.avgGdi || 0, lang === 'zh' ? '平均 GDI' : 'avg GDI'],
+    ].map(([n, l]) => `<div class="value-stat"><span class="value-num">${esc(String(n))}</span><span class="value-label">${esc(l)}</span></div>`).join('');
+  }
 
   // safety
   const s = STATE.safety;
@@ -703,6 +718,7 @@ function wire() {
   $('recallStatusFilter').addEventListener('change', (e) => { RECALL_FILTER.status = e.target.value; renderRecall(); });
   // refresh
   $('refreshButton').addEventListener('click', () => { refreshAll(); loadSelf(); });
+  $('copyPromptButton').addEventListener('click', () => { const txt = (document.getElementById('valuePromptText') || {}).textContent || ''; if (navigator.clipboard) { navigator.clipboard.writeText(txt).then(() => toast(t('copied'), 'ok')).catch(() => toast('copy failed', 'error')); } else { toast(txt, ''); } });
   // self update
   $('checkSelfButton').addEventListener('click', async () => { const s = await getJSON('/api/self/check'); $('selfUpdateState').textContent = s.updateAvailable ? `behind ${s.behind}` : s.status; toast(s.updateAvailable ? `behind ${s.behind}` : (lang === 'zh' ? '已是最新' : 'up to date')); });
   $('updateSelfButton').addEventListener('click', async () => { const o = await postJSON('/api/self/update-restart'); toast(o.restartHint || o.reason || (o.ok ? 'ok' : 'error'), o.ok ? 'ok' : 'error'); });
