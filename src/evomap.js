@@ -204,6 +204,16 @@ async function publish(baseUrl, asset, { nodeId, nodeSecret } = {}) {
   return request('POST', `${baseUrl}/a2a/publish`, { body, headers: bearer(nodeSecret) });
 }
 
+// Publish (or dry-run validate) a BUNDLE. EvoMap requires payload.assets — an
+// array with at least a Gene and a Capsule (EvolutionEvent optional), each
+// carrying a precomputed asset_id. dryRun → POST /a2a/validate (no write),
+// which returns field-level errors so the agent can fix before publishing.
+async function publishBundle(baseUrl, assets, { nodeId, nodeSecret, dryRun = false } = {}) {
+  const messageType = dryRun ? 'validate' : 'publish';
+  const body = envelope(messageType, { assets }, { senderId: nodeId });
+  return request('POST', `${baseUrl}/a2a/${dryRun ? 'validate' : 'publish'}`, { body, headers: bearer(nodeSecret) });
+}
+
 // Vote up/down on an asset. This is a USER-level action: /a2a/assets/:id/vote
 // uses requireAuth (ek_* API key or session), NOT node_secret. Plain REST body,
 // no envelope. Re-voting the same direction toggles the vote off.
@@ -232,5 +242,6 @@ module.exports = {
   assetsPurchased,
   assetsPublishedByMe,
   publish,
+  publishBundle,
   voteAsset,
 };

@@ -560,6 +560,40 @@ async function publishDraft(draftId, { override } = {}) {
   return { ok: true, action: 'publish', draftId, result: res.json || null };
 }
 
+// The correct EvoMap publish path: an agent-built BUNDLE (payload.assets) with a
+// Gene + Capsule, each carrying a precomputed asset_id. The companion validates
+// (dry-run) and publishes; it does not invent content or asset_ids. dryRun=true
+// hits /a2a/validate and surfaces field-level errors for the agent to fix first.
+async function publishBundle(assets, { dryRun = false, override } = {}) {
+  const action = dryRun ? 'validate' : 'publish';
+  if (!Array.isArray(assets) || assets.length < 2) {
+    return { ok: false, action, error: 'bundle_required', hint: 'payload.assets must contain at least a Gene and a Capsule, each with a precomputed asset_id (sha256 via @evomap/gep-sdk).' };
+  }
+  const missingId = assets.find((a) => !a || !a.asset_id);
+  if (missingId) {
+    return { ok: false, action, error: 'asset_id_missing', hint: 'Each asset needs a precomputed asset_id = sha256 of its canonical JSON (excluding asset_id). Use @evomap/gep-sdk computeAssetId.' };
+  }
+  const creds = store.getCredentials();
+  if (!creds || !creds.node_secret || !creds.claimed) {
+    return { ok: false, action, error: 'not_bound', hint: 'Bind a node before publishing.' };
+  }
+  const res = await evomap.publishBundle(baseUrl(override), assets, { nodeId: creds.node_id, nodeSecret: creds.node_secret, dryRun });
+  store.logCall({ action, ok: res.ok, status: res.status, error: res.error });
+  const payload = (res.json && (res.json.payload || res.json)) || {};
+  if (!res.ok) {
+    return {
+      ok: false,
+      action,
+      status: res.status,
+      error: (res.json && res.json.error) || res.error,
+      reason: payload.reason || null,
+      details: (res.json && res.json.details) || null,
+      correction: (res.json && res.json.correction) || null,
+    };
+  }
+  return { ok: true, action, valid: payload.valid !== false, result: payload };
+}
+
 // --- Companion self-update (git + pm2), mirrors evolver-companion -------
 
 function runCommand(command, cmdArgs, options = {}) {
@@ -768,6 +802,8 @@ const ROUTES = [
   ['POST', '/api/recall/remove', async (req, res) => { const body = await readBody(req); const remaining = store.removeRecalledAsset(body.asset_id || body.assetId); refreshIntegrations(); broadcast('recall', {}); sendJson(res, { ok: true, remaining }); }],
   ['POST', '/api/publish/draft', async (req, res) => { const body = await readBody(req); sendJson(res, stageDraft(body)); }],
   ['POST', '/api/publish', async (req, res, url) => { const body = await readBody(req); sendJson(res, await publishDraft(body.draftId || body.id, { override: url.searchParams.get('base') })); }],
+  ['POST', '/api/publish/validate', async (req, res, url) => { const body = await readBody(req); sendJson(res, await publishBundle(body.assets, { dryRun: true, override: url.searchParams.get('base') })); }],
+  ['POST', '/api/publish/bundle', async (req, res, url) => { const body = await readBody(req); sendJson(res, await publishBundle(body.assets, { dryRun: false, override: url.searchParams.get('base') })); }],
   ['POST', '/api/integrate/setup', async (req, res, url) => {
     const platform = url.searchParams.get('platform');
     const out = recall.writeIntegration(platform, {
