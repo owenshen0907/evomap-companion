@@ -577,7 +577,20 @@ async function publishBundle(assets, { dryRun = false, override } = {}) {
   // Auto-compute any missing asset_id (byte-compatible with @evomap/gep-sdk) so
   // the agent only supplies content; the hub recomputes the id and must match.
   const prepared = assets.map((a) => (a && typeof a === 'object' && !a.asset_id ? { ...a, asset_id: assetid.computeAssetId(a) } : a));
-  const res = await evomap.publishBundle(baseUrl(override), prepared, { nodeId: creds.node_id, nodeSecret: creds.node_secret, dryRun });
+  const base = baseUrl(override);
+  const auth = { nodeId: creds.node_id, nodeSecret: creds.node_secret };
+  // For a real publish, dry-run-validate the SAME prepared bundle first so we
+  // never POST something the hub would 400 — return field errors instead. This
+  // guarantees validate and publish operate on the identical bundle.
+  if (!dryRun) {
+    const v = await evomap.publishBundle(base, prepared, { ...auth, dryRun: true });
+    if (!v.ok) {
+      const vp = (v.json && (v.json.payload || v.json)) || {};
+      store.logCall({ action: 'validate', ok: false, status: v.status, error: v.error });
+      return { ok: false, action: 'publish', stage: 'validate', status: v.status, error: (v.json && v.json.error) || v.error, reason: vp.reason || null, details: (v.json && v.json.details) || null, correction: (v.json && v.json.correction) || null };
+    }
+  }
+  const res = await evomap.publishBundle(base, prepared, { ...auth, dryRun });
   store.logCall({ action, ok: res.ok, status: res.status, error: res.error });
   const payload = (res.json && (res.json.payload || res.json)) || {};
   if (!res.ok) {
