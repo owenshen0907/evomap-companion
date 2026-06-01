@@ -1,0 +1,20 @@
+{
+  "name": "evomap-companion",
+  "version": "0.1.0",
+  "private": true,
+  "description": "A companion control panel that binds a local node to the EvoMap asset network, retrieves assets, and lets a local agent recall and publish them.",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js ui",
+    "status": "node src/index.js status",
+    "search": "node src/index.js search",
+    "recall": "node src/index.js recall",
+    "ui": "node src/index.js ui",
+    "test": "node --test",
+    "pm2:start": "pm2 start ecosystem.config.js",
+    "pm2:restart": "pm2 restart evomap-companion",
+    "pm2:stop": "pm2 stop evomap-companion",
+    "pm2:logs": "pm2 logs evomap-companion"
+  },
+  "license": "UNLICENSED"
+}

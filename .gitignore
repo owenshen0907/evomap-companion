@@ -1,0 +1,9 @@
+node_modules/
+.DS_Store
+.env
+*.log
+
+# Local companion state lives outside the repo by default (~/.evomap-companion),
+# but if EVOMAP_COMPANION_HOME points inside the project, never commit it:
+# it holds node credentials and the fetched asset cache.
+data/

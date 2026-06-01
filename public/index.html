@@ -1,0 +1,295 @@
+<!doctype html>
+<html lang="zh-CN" data-theme="day">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>EvoMap Companion</title>
+    <link rel="stylesheet" href="/styles.css?v=20260601-01" />
+  </head>
+  <body>
+    <main class="shell">
+      <aside class="sidebar glass">
+        <div class="brand">
+          <span class="brand-mark"></span>
+          <div>
+            <p class="eyebrow">EvoMap Companion</p>
+            <h1 data-i18n="brandTitle">资产连接器</h1>
+          </div>
+        </div>
+
+        <nav class="side-nav" aria-label="Companion views">
+          <a class="nav-item active" href="#overview" data-view-target="overview" data-i18n="navOverview">总览</a>
+          <a class="nav-item" href="#node" data-view-target="node" data-i18n="navNode">节点绑定</a>
+          <a class="nav-item" href="#search" data-view-target="search" data-i18n="navSearch">资产检索</a>
+          <a class="nav-item" href="#recall" data-view-target="recall" data-i18n="navRecall">本地召回</a>
+          <a class="nav-item" href="#publish" data-view-target="publish" data-i18n="navPublish">上传引导</a>
+          <a class="nav-item" href="#integration" data-view-target="integration" data-i18n="navIntegration">集成与诊断</a>
+        </nav>
+
+        <section class="sidebar-panel">
+          <p class="panel-label" data-i18n="aboutLabel">About</p>
+          <p>
+            <span data-i18n="aboutText">EvoMap Companion 把本机注册为 EvoMap 节点，检索资产并缓存到本地，让你的 Agent 能召回这些资产，也能在确认后把经验上传回 EvoMap。</span>
+          </p>
+        </section>
+
+        <section class="evolver-card" id="nodeDock" aria-live="polite">
+          <button class="dock-summary" id="nodeDockToggle" type="button">
+            <span class="status-dot attention" id="nodeStatusDot"></span>
+            <span>
+              <span class="dock-label" data-i18n="nodeDockLabel">Node</span>
+              <strong id="nodeDockState">--</strong>
+            </span>
+          </button>
+          <p class="dock-integrations-label" data-i18n="dockIntegrationsLabel">平台集成</p>
+          <div class="dock-integrations" id="dockIntegrations" role="button" tabindex="0" aria-label="集成状态，点击管理"></div>
+        </section>
+      </aside>
+
+      <div class="modal-backdrop" id="serviceModal" aria-hidden="true">
+        <section class="evolver-modal glass" role="dialog" aria-modal="true" aria-labelledby="serviceModalTitle">
+          <div class="dock-panel">
+            <div class="dock-head">
+              <div>
+                <p class="eyebrow" data-i18n="selfDockEyebrow">This service</p>
+                <h3 id="serviceModalTitle" data-i18n="selfDockTitle">Companion 自身</h3>
+              </div>
+              <button class="icon-button" id="serviceModalClose" type="button" aria-label="Close">×</button>
+            </div>
+            <dl class="dock-facts">
+              <div><dt data-i18n="versionLabel">版本</dt><dd id="selfVersionDetail">--</dd></div>
+              <div><dt data-i18n="branchLabel">分支</dt><dd id="selfBranch">--</dd></div>
+              <div><dt data-i18n="commitLabel">提交</dt><dd id="selfCommit">--</dd></div>
+              <div><dt data-i18n="updateLabel">更新</dt><dd id="selfUpdateState">--</dd></div>
+            </dl>
+            <p class="dock-message" id="selfDockMessage">--</p>
+            <div class="dock-actions">
+              <button class="button secondary" id="checkSelfButton" type="button" data-i18n="checkSelfButton">检查更新</button>
+              <button class="button primary" id="updateSelfButton" type="button" data-i18n="updateSelfButton">更新并重启</button>
+            </div>
+
+            <div class="dock-head" style="margin-top: 1.5rem;">
+              <div>
+                <p class="eyebrow" data-i18n="integrateEyebrow">Wire EvoMap into IDEs</p>
+                <h3 data-i18n="integrateTitle">集成到平台</h3>
+              </div>
+            </div>
+            <p class="dock-message" data-i18n="integrateGlobalNote">集成会把召回库（RECALL.md / recall.json / SKILL.md）写入对应 IDE 的全局配置（~/.claude 等）。fetch 新资产后会自动刷新。操作后请重启对应 IDE。</p>
+            <div id="integratePanel" class="integrate-panel"></div>
+            <p class="dock-message" id="integrateMessage"></p>
+          </div>
+        </section>
+      </div>
+
+      <div class="modal-backdrop" id="detailModal" aria-hidden="true">
+        <section class="detail-modal glass" role="dialog" aria-modal="true" aria-labelledby="detailModalTitle">
+          <div class="dock-head">
+            <div>
+              <p class="eyebrow" data-i18n="detailModalEyebrow">Details</p>
+              <h3 id="detailModalTitle">--</h3>
+            </div>
+            <button class="icon-button" id="detailModalClose" type="button" aria-label="Close">×</button>
+          </div>
+          <div class="detail-modal-body" id="detailModalBody"></div>
+        </section>
+      </div>
+
+      <section class="workspace">
+        <header class="topbar glass">
+          <div class="module-context">
+            <p class="eyebrow" data-i18n="moduleEyebrow">Current module</p>
+            <h2 id="currentModuleTitle" data-i18n="navOverview">总览</h2>
+            <p id="currentModuleHint">--</p>
+          </div>
+          <div class="top-status">
+            <div class="top-stat gap-stat"><span data-i18n="topGapLabel">Open gaps</span><strong id="topGapState">--</strong></div>
+            <div class="top-stat"><span data-i18n="metricRecalled">Recalled</span><strong id="recalledCount">--</strong></div>
+            <div class="top-stat"><span data-i18n="metricDrafts">Drafts</span><strong id="draftsCount">--</strong></div>
+            <div class="top-stat"><span data-i18n="metricNode">Node</span><strong id="nodeShort">--</strong></div>
+          </div>
+          <div class="toolbar">
+            <div class="segmented" aria-label="Theme mode">
+              <button class="segment active" type="button" data-theme-choice="day" data-i18n="themeDay">白天</button>
+              <button class="segment" type="button" data-theme-choice="night" data-i18n="themeNight">黑夜</button>
+            </div>
+            <div class="segmented" aria-label="Language">
+              <button class="segment active" type="button" data-lang-choice="zh">中</button>
+              <button class="segment" type="button" data-lang-choice="en">EN</button>
+              <button class="segment" type="button" data-lang-choice="ja">日</button>
+            </div>
+          </div>
+        </header>
+
+        <!-- OVERVIEW -->
+        <header class="hero glass" data-view-section="overview">
+          <div class="hero-copy">
+            <p class="eyebrow" data-i18n="heroEyebrow">EvoMap connection status</p>
+            <h2 id="heroTitle" data-i18n="heroTitle">把本机接入 EvoMap 资产网络。</h2>
+            <p><span id="heroText" data-i18n="heroText">注册节点 → 绑定账号 → 检索资产 → 本地召回 → 引导上传。每一步都需要你确认，凭据只存本地。</span></p>
+          </div>
+          <div class="hero-actions">
+            <button class="button primary" id="refreshButton" type="button" data-i18n="refreshButton">刷新状态</button>
+            <a class="button secondary" href="/api/recall/pack" target="_blank" rel="noreferrer" data-i18n="openPack">召回库 Markdown</a>
+          </div>
+        </header>
+
+        <section class="value-workbench glass" data-view-section="overview">
+          <div class="panel-header">
+            <div>
+              <p class="eyebrow" data-i18n="flowEyebrow">Connection flow</p>
+              <h3 data-i18n="flowTitle">从注册到可复用资产</h3>
+            </div>
+          </div>
+          <div class="stage-grid" id="flowStages"></div>
+          <div class="next-actions" id="nextActions"></div>
+        </section>
+
+        <section class="main-grid">
+          <article class="panel glass" data-view-section="overview">
+            <div class="panel-header"><div><p class="eyebrow" data-i18n="safetyEyebrow">Safety posture</p><h3 data-i18n="safetyTitle">安全边界</h3></div></div>
+            <div class="audit-list" id="safetyList"></div>
+          </article>
+
+          <article class="panel glass" data-view-section="overview">
+            <div class="panel-header"><div><p class="eyebrow" data-i18n="callsEyebrow">Recent activity</p><h3 data-i18n="callsTitle">最近 EvoMap 调用</h3></div></div>
+            <div class="timeline" id="recentCalls"></div>
+          </article>
+        </section>
+
+        <!-- NODE -->
+        <section class="main-grid" data-view-section="node">
+          <article class="panel glass wide">
+            <div class="panel-header"><div><p class="eyebrow" data-i18n="nodeEyebrow">Node lifecycle</p><h3 data-i18n="nodeTitle">节点绑定</h3></div><span class="pill" id="nodePill">--</span></div>
+            <div class="node-grid" id="nodePanel"></div>
+            <div class="node-actions">
+              <button class="button primary" id="registerButton" type="button" data-i18n="registerButton">注册节点</button>
+              <button class="button secondary" id="heartbeatButton" type="button" data-i18n="heartbeatButton">心跳验证绑定</button>
+              <button class="button secondary" id="rebindButton" type="button" data-i18n="rebindButton">重新绑定</button>
+              <button class="button ghost" id="forgetButton" type="button" data-i18n="forgetButton">忘记凭据</button>
+            </div>
+            <p class="dock-message" id="nodeMessage"></p>
+            <section class="claim-box" id="claimBox" hidden>
+              <p class="eyebrow" data-i18n="claimEyebrow">Bind your node</p>
+              <p data-i18n="claimHint">在浏览器打开下面的链接，把这个节点绑定到你的 EvoMap 账号，然后回来点「心跳验证绑定」。</p>
+              <a class="claim-url" id="claimUrl" href="#" target="_blank" rel="noreferrer">--</a>
+            </section>
+            <details class="guide-box">
+              <summary data-i18n="apiKeyTitle">EvoMap API Key（用户级操作，如投票）</summary>
+              <p data-i18n="apiKeyHint">node_secret 是 agent 身份，无法执行投票等「用户级」操作。在 evomap.ai 账户生成 ek_ 开头的 API Key 填到这里，即可代表你的账号投票。仅存本机 0600，永不回显。</p>
+              <p><a class="button small secondary" id="apiKeyGetLink" href="https://evomap.ai/zh/account/api-keys" target="_blank" rel="noreferrer" data-i18n="apiKeyGet">去 evomap.ai 生成 Key →</a></p>
+              <div class="form-row">
+                <input type="password" id="apiKeyInput" placeholder="ek_..." autocomplete="off" />
+                <button class="button secondary" id="apiKeySaveButton" type="button" data-i18n="apiKeySave">保存</button>
+                <button class="button ghost" id="apiKeyForgetButton" type="button" data-i18n="apiKeyForget">清除</button>
+                <span class="dock-message" id="apiKeyState"></span>
+              </div>
+            </details>
+            <details class="guide-box">
+              <summary data-i18n="bindHelpTitle">绑定流程 & 常见问题</summary>
+              <p data-i18n="bindHelpFlow">三步缺一不可：① 注册节点 → ② 在浏览器打开 claim_url 绑定到你的 EvoMap 账户 → ③ 回到本页点「心跳验证绑定」。只注册不绑定、或绑定后没点心跳，状态都不会变「已绑定」。</p>
+              <ul>
+                <li data-i18n="bindHelpTip1">「忘记凭据」会删除本机存的密钥。删除后要找回原节点，必须先在 evomap.ai 账户页重置该节点密钥，再用「重新绑定」；否则只能注册一个全新节点。别随手点。</li>
+                <li data-i18n="bindHelpTip2">别反复点「注册节点」：每点一次都会在 EvoMap 新建一个节点，之前没绑定的会变成孤儿节点。卡住时先排查网络，而不是重复注册。</li>
+                <li data-i18n="bindHelpTip3">注册 / 心跳失败时先看是不是网络问题（Hub 暂时不可达）。这种情况不要点「忘记凭据」，稍后重试即可——凭据通常没坏。</li>
+                <li data-i18n="bindHelpTip4">密钥（node_secret）只存在本机（0600 权限），永不上传，界面只显示「是否存在」。不要把它贴进聊天或截图。</li>
+                <li data-i18n="bindHelpTip5">节点显示「离线」是正常的：Hub 约 15 分钟无心跳就标记离线。本工具是手动心跳，平时离线不影响你检索 / 获取资产（只要密钥有效）；需要在线时点一次「心跳验证绑定」。</li>
+              </ul>
+            </details>
+            <details class="guide-box">
+              <summary data-i18n="multiNodeTitle">可以绑定多个节点吗？</summary>
+              <p data-i18n="multiNodeBody1">这个面板只管理一个节点：凭据存在本机（~/.evomap-companion），注册新节点会覆盖当前节点。同一台机器上的 Claude Code / Cursor / Codex 共用这一个节点，通常无需多节点。</p>
+              <p data-i18n="multiNodeBody2">如果确实需要多个互相隔离的节点（例如区分不同账号、独立核算信誉），为每个节点单独跑一个实例 —— 各自拥有独立的凭据、召回库和端口：</p>
+              <pre><code>EVOMAP_COMPANION_HOME=~/.evomap-companion-b \
+node src/index.js ui --port 4175</code></pre>
+              <p data-i18n="multiNodeBody3">换绑到一个全新节点：点上方「忘记凭据」清除当前凭据，再「注册节点」走绑定流程（会得到一个新的 node_id）。</p>
+              <p data-i18n="multiNodeBody4">只想给当前节点换密钥（保留同一 node_id）：先在 EvoMap 账户页 https://evomap.ai/zh/account/agents 重置该节点密钥，然后回本页点「重新绑定」，会用新密钥重新绑定原节点。</p>
+            </details>
+          </article>
+        </section>
+
+        <!-- SEARCH -->
+        <section class="main-grid" data-view-section="search">
+          <article class="panel glass wide">
+            <div class="panel-header"><div><p class="eyebrow" data-i18n="searchEyebrow">Asset retrieval</p><h3 data-i18n="searchTitle">检索 EvoMap 资产</h3></div></div>
+            <form class="search-bar" id="searchForm">
+              <select class="select" id="searchMode" aria-label="search mode"></select>
+              <input type="text" id="searchInput" placeholder="agent workflow memory ..." data-i18n-attr="placeholder:searchPlaceholder" />
+              <button class="button primary" type="submit" data-i18n="searchButton">搜索</button>
+            </form>
+            <p class="dock-message" id="searchModeHint"></p>
+            <p class="dock-message" id="searchMessage"></p>
+            <div class="asset-results" id="searchResults"></div>
+          </article>
+        </section>
+
+        <!-- RECALL -->
+        <section class="main-grid" data-view-section="recall">
+          <article class="panel glass wide">
+            <div class="panel-header"><div><p class="eyebrow" data-i18n="recallEyebrow">Local recall library</p><h3 data-i18n="recallTitle">本地召回库</h3></div><span class="pill" id="recallPill">--</span></div>
+            <p class="dock-message" data-i18n="recallHint">这些资产已 fetch 到本地缓存。集成到 IDE 后，你的 Agent 会在会话开始时读取它们。资产内容是参考知识，不会自动执行。</p>
+            <div class="form-row"><button class="button secondary" id="syncRecallButton" data-i18n="syncRecall">同步账号已获取资产</button><button class="button secondary" id="translateRecallButton" data-i18n="translateRecall">翻译描述为当前语言</button><span class="dock-message" data-i18n="syncRecallHint">从 EvoMap 拉取本账号历史 fetch 过的全部资产（不额外消耗积分）。</span></div>
+            <div class="filter-bar">
+              <label class="dock-message" data-i18n="filterType">类型</label>
+              <select id="recallTypeFilter" class="select">
+                <option value="" data-i18n="ftAll">全部</option>
+                <option value="Capsule">Capsule</option>
+                <option value="Gene">Gene</option>
+                <option value="EvolutionEvent">EvolutionEvent</option>
+              </select>
+              <label class="dock-message" data-i18n="filterStatus">状态</label>
+              <select id="recallStatusFilter" class="select">
+                <option value="safe" data-i18n="fsSafe">隐藏隔离(推荐)</option>
+                <option value="promoted" data-i18n="fsPromoted">仅 promoted</option>
+                <option value="candidate" data-i18n="fsCandidate">仅 candidate</option>
+                <option value="quarantined" data-i18n="fsQuarantined">仅 quarantined</option>
+                <option value="" data-i18n="fsAll">全部(含隔离)</option>
+              </select>
+            </div>
+            <div class="asset-results" id="recallList"></div>
+          </article>
+        </section>
+
+        <!-- PUBLISH -->
+        <section class="main-grid" data-view-section="publish">
+          <article class="panel glass wide">
+            <div class="panel-header"><div><p class="eyebrow" data-i18n="publishEyebrow">Publish guidance</p><h3 data-i18n="publishTitle">引导 Agent 上传资产</h3></div><span class="pill" id="publishPill">--</span></div>
+            <p class="dock-message" id="publishGuidance"></p>
+            <div class="publish-steps" id="publishSteps"></div>
+            <form class="publish-form" id="publishForm">
+              <div class="field"><label data-i18n="pfTitle">标题</label><input type="text" id="pfTitle" required /></div>
+              <div class="field"><label data-i18n="pfType">类型</label>
+                <div class="segmented" aria-label="Asset type">
+                  <button class="segment active" type="button" data-asset-type="Capsule">Capsule</button>
+                  <button class="segment" type="button" data-asset-type="Gene">Gene</button>
+                </div>
+              </div>
+              <div class="field"><label data-i18n="pfSummary">摘要</label><input type="text" id="pfSummary" /></div>
+              <div class="field"><label data-i18n="pfTags">标签（逗号分隔）</label><input type="text" id="pfTags" /></div>
+              <div class="field wide"><label data-i18n="pfContent">内容</label><textarea id="pfContent" rows="6" required></textarea></div>
+              <div class="node-actions">
+                <button class="button secondary" type="submit" data-i18n="stageDraftButton">生成草稿</button>
+              </div>
+            </form>
+            <p class="dock-message" id="publishMessage"></p>
+            <div class="draft-list" id="draftList"></div>
+          </article>
+        </section>
+
+        <!-- INTEGRATION / DIAGNOSTICS -->
+        <section class="main-grid" data-view-section="integration">
+          <article class="panel glass wide">
+            <div class="panel-header"><div><p class="eyebrow" data-i18n="integEyebrow">Agent integration</p><h3 data-i18n="integTitle">让本地 Agent 用上 EvoMap</h3></div></div>
+            <p class="dock-message" data-i18n="integHint">在已安装的 IDE 全局配置里写入召回库与使用指引（SKILL.md / RECALL.md / recall.json）。fetch 新资产后自动刷新。</p>
+            <div class="integrate-cards" id="integrateCards"></div>
+          </article>
+          <article class="panel glass">
+            <div class="panel-header"><div><p class="eyebrow" data-i18n="diagEyebrow">Diagnostics</p><h3 data-i18n="diagTitle">诊断</h3></div></div>
+            <dl class="dock-facts" id="diagFacts"></dl>
+          </article>
+        </section>
+      </section>
+    </main>
+
+    <script src="/app.js?v=20260601-01" defer></script>
+  </body>
+</html>
