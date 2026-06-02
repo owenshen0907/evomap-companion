@@ -262,6 +262,12 @@ node src/index.js ui --port 4175</code></pre>
                 <option value="quarantined" data-i18n="fsQuarantined">仅 quarantined</option>
                 <option value="" data-i18n="fsAll">全部(含隔离)</option>
               </select>
+              <label class="dock-message" data-i18n="filterOrigin">来源</label>
+              <select id="recallOriginFilter" class="select">
+                <option value="" data-i18n="foAll">全部来源</option>
+                <option value="published" data-i18n="foPublished">我发布的</option>
+                <option value="acquired" data-i18n="foAcquired">我获取的</option>
+              </select>
             </div>
             <div class="asset-results" id="recallList"></div>
           </article>

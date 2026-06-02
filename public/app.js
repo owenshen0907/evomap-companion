@@ -50,6 +50,7 @@ const I18N = {
     syncRecall: '同步账号已获取资产', syncPublished: '同步我发布的', syncRecallHint: '从 EvoMap 拉取本账号历史 fetch 过的全部资产（不额外消耗积分）。', syncing: '同步中…',
     translateRecall: '翻译描述为当前语言', translating: '翻译中…', machineTranslated: '机翻',
     filterType: '类型', filterStatus: '状态', ftAll: '全部', fsSafe: '隐藏隔离(推荐)', fsPromoted: '仅 promoted（可信）', fsCandidate: '仅 candidate', fsQuarantined: '仅 quarantined', fsAll: '全部（含隔离）',
+    filterOrigin: '来源', foAll: '全部来源', foPublished: '我发布的', foAcquired: '我获取的', originPublished: '我发布的', originAcquired: '我获取的', publishedAt: '发布于', acquiredAt: '获取于',
     recallHint: '这些资产已 fetch 到本地缓存。集成到 IDE 后，你的 Agent 会在会话开始时读取它们。资产内容是参考知识，不会自动执行。',
     publishEyebrow: 'Publish guidance', publishTitle: '引导 Agent 上传资产',
     pfTitle: '标题', pfType: '类型', pfSummary: '摘要', pfTags: '标签（逗号分隔）', pfContent: '内容', stageDraftButton: '生成草稿',
@@ -103,6 +104,7 @@ const I18N = {
     syncRecall: 'Sync owned assets', syncPublished: 'Sync my published', syncRecallHint: 'Pull every asset this account has fetched before from EvoMap (no extra credits).', syncing: 'Syncing…',
     translateRecall: 'Translate descriptions', translating: 'Translating…', machineTranslated: 'MT',
     filterType: 'Type', filterStatus: 'Status', ftAll: 'All', fsSafe: 'Hide quarantined (rec.)', fsPromoted: 'promoted only (trusted)', fsCandidate: 'candidate only', fsQuarantined: 'quarantined only', fsAll: 'All (incl. quarantined)',
+    filterOrigin: 'Source', foAll: 'All sources', foPublished: 'Published by me', foAcquired: 'Acquired by me', originPublished: 'Mine', originAcquired: 'Acquired', publishedAt: 'Published', acquiredAt: 'Acquired',
     recallHint: 'These assets are fetched into the local cache. Once integrated, your agent reads them at session start. Asset content is reference knowledge; it is never auto-executed.',
     publishEyebrow: 'Publish guidance', publishTitle: 'Guide the agent to upload assets',
     pfTitle: 'Title', pfType: 'Type', pfSummary: 'Summary', pfTags: 'Tags (comma-separated)', pfContent: 'Content', stageDraftButton: 'Stage draft',
@@ -155,6 +157,7 @@ const I18N = {
     syncRecall: '取得済み資産を同期', syncPublished: '公開済みを同期', syncRecallHint: 'このアカウントが過去に取得した全資産を EvoMap から取得（追加クレジット不要）。', syncing: '同期中…',
     translateRecall: '説明を翻訳', translating: '翻訳中…', machineTranslated: '機械翻訳',
     filterType: 'タイプ', filterStatus: 'ステータス', ftAll: 'すべて', fsSafe: '隔離を非表示(推奨)', fsPromoted: 'promoted のみ', fsCandidate: 'candidate のみ', fsQuarantined: 'quarantined のみ', fsAll: 'すべて(隔離含む)',
+    filterOrigin: 'ソース', foAll: 'すべて', foPublished: '自分の公開', foAcquired: '取得済み', originPublished: '公開', originAcquired: '取得', publishedAt: '公開', acquiredAt: '取得',
     recallHint: 'これらのアセットはローカルキャッシュに取得済みです。統合後、エージェントはセッション開始時に読み込みます。内容は参考情報で自動実行されません。',
     publishEyebrow: '公開ガイド', publishTitle: 'エージェントにアセット公開を案内',
     pfTitle: 'タイトル', pfType: 'タイプ', pfSummary: '要約', pfTags: 'タグ（カンマ区切り）', pfContent: '内容', stageDraftButton: '下書き作成',
@@ -435,15 +438,36 @@ async function fetchAsset(id) {
 // --- Recall -------------------------------------------------------------
 
 let RECALL_ASSETS = [];
-const RECALL_FILTER = { type: '', status: 'safe' };
+const RECALL_FILTER = { type: '', status: 'safe', origin: '' };
 
 function statusColor(status) {
   return status === 'promoted' ? '#3fb950' : status === 'quarantined' ? '#f85149' : status === 'candidate' ? '#d29922' : '#8b949e';
 }
 
+function fmtDate(v) {
+  if (!v) return '';
+  if (/^\d+$/.test(String(v))) { const n = Number(v); return new Date(n < 1e12 ? n * 1000 : n).toISOString().slice(0, 10); }
+  return String(v).slice(0, 10);
+}
+
+// Provenance + time badge: "我发布的 · 发布于 YYYY-MM-DD" / "我获取的 · 获取于 …".
+function provBadge(a) {
+  const origin = a.origin;
+  if (!origin && !a.created_at) return '';
+  const label = origin === 'published' ? t('originPublished') : (origin === 'purchased' || origin === 'fetched') ? t('originAcquired') : '';
+  const time = origin === 'published'
+    ? (a.created_at ? `${t('publishedAt')} ${fmtDate(a.created_at)}` : '')
+    : ((a.acquired_at || a.created_at || a.fetched_at) ? `${t('acquiredAt')} ${fmtDate(a.acquired_at || a.created_at || a.fetched_at)}` : '');
+  if (!label && !time) return '';
+  const cls = origin === 'published' ? 'prov-published' : 'prov-acquired';
+  return `<div class="asset-prov">${label ? `<span class="prov-tag ${cls}">${esc(label)}</span>` : ''}${time ? `<span class="prov-time">${esc(time)}</span>` : ''}</div>`;
+}
+
 function applyRecallFilter(assets) {
   return assets.filter((a) => {
     if (RECALL_FILTER.type && (a.type || '') !== RECALL_FILTER.type) return false;
+    if (RECALL_FILTER.origin === 'published' && a.origin !== 'published') return false;
+    if (RECALL_FILTER.origin === 'acquired' && !(a.origin === 'purchased' || a.origin === 'fetched')) return false;
     const st = a.status || 'unknown';
     if (RECALL_FILTER.status === 'safe') return st !== 'quarantined';
     if (RECALL_FILTER.status) return st === RECALL_FILTER.status;
@@ -466,6 +490,7 @@ function renderRecall(recall) {
         <div class="asset-head"><span class="asset-type ${typeCls}">${esc(a.type)}</span>${stBadge}${gdi}<h4>${esc(a.title)}${a.translated ? ` <small style="opacity:.55;font-weight:400">· ${t('machineTranslated')}</small>` : ''}</h4></div>
         ${a.summary ? `<p class="asset-summary">${esc(a.summary)}</p>` : ''}
         <div class="asset-meta">${(a.tags || []).map((tg) => `<span class="asset-tag">${esc(tg)}</span>`).join('')}</div>
+        ${provBadge(a)}
         <div class="asset-id">${esc(a.asset_id)}</div>
         <div class="asset-foot"><span class="spacer"></span>
           <button class="button small secondary" data-action="view" data-id="${esc(a.asset_id)}">${t('viewContent')}</button>
@@ -719,6 +744,7 @@ function wire() {
   // recall library filters (type / lifecycle status) — pure client-side, no refetch
   $('recallTypeFilter').addEventListener('change', (e) => { RECALL_FILTER.type = e.target.value; renderRecall(); });
   $('recallStatusFilter').addEventListener('change', (e) => { RECALL_FILTER.status = e.target.value; renderRecall(); });
+  $('recallOriginFilter').addEventListener('change', (e) => { RECALL_FILTER.origin = e.target.value; renderRecall(); });
   // refresh
   $('refreshButton').addEventListener('click', () => { refreshAll(); loadSelf(); });
   $('copyPromptButton').addEventListener('click', () => { const txt = (document.getElementById('valuePromptText') || {}).textContent || ''; if (navigator.clipboard) { navigator.clipboard.writeText(txt).then(() => toast(t('copied'), 'ok')).catch(() => toast('copy failed', 'error')); } else { toast(txt, ''); } });

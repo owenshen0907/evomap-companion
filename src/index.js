@@ -371,7 +371,7 @@ async function fetchAndRecall(assetIds, { override } = {}) {
   const recalled = [];
   for (const asset of assets) {
     if (!asset) continue;
-    recalled.push(store.saveRecalledAsset(asset));
+    recalled.push(store.saveRecalledAsset(asset, { origin: 'fetched' }));
   }
   // Keep every integrated agent's recall library fresh after a fetch.
   refreshIntegrations();
@@ -405,7 +405,7 @@ async function syncPurchased({ override, type = null, since = null, maxPages = 1
     if (typeof payload.total === 'number') total = payload.total;
     for (const asset of assets) {
       if (!asset || !(asset.asset_id || asset.id)) continue;
-      recalled.push(store.saveRecalledAsset(asset));
+      recalled.push(store.saveRecalledAsset(asset, { origin: 'purchased' }));
     }
     cursor = payload.has_more ? (payload.next_cursor || null) : null;
     pages += 1;
@@ -438,7 +438,7 @@ async function syncPublished({ override, maxPages = 100 } = {}) {
     const assets = payload.assets || payload.results || [];
     for (const asset of assets) {
       if (!asset || !(asset.asset_id || asset.id)) continue;
-      recalled.push(store.saveRecalledAsset(asset));
+      recalled.push(store.saveRecalledAsset(asset, { origin: 'published' }));
     }
     cursor = payload.has_more ? (payload.next_cursor || null) : null;
     pages += 1;

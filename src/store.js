@@ -196,23 +196,39 @@ function buildIndexEntry(asset) {
     gdi_score: typeof asset.gdi_score === 'number' ? asset.gdi_score : null,
     reuse_count: typeof asset.reuse_count === 'number' ? asset.reuse_count : 0,
     call_count: typeof asset.call_count === 'number' ? asset.call_count : 0,
+    // Provenance: 'published' (mine) / 'purchased' (acquired) / 'fetched'.
+    origin: asset.__origin || null,
+    // Asset's own create/publish time on EvoMap (when available).
+    created_at: asset.created_at || asset.createdAt || null,
+    // Server-recorded acquisition time (purchased assets carry first/last_fetched_at).
+    acquired_at: asset.first_fetched_at || asset.last_fetched_at || null,
     title: asset.short_title || asset.title || payload.summary || asset.nl_summary || assetId,
     summary: asset.nl_summary || asset.summary || payload.summary || '',
     tags: normalizeTags(asset.tags || payload.tags),
-    fetched_at: new Date().toISOString(),
+    // First time this machine recalled it (preserved across reindex).
+    fetched_at: asset.__fetched_at || new Date().toISOString(),
   };
 }
 
 // Store a fetched asset and record it in the recall index. Re-fetching the same
 // asset_id updates the cached body and bumps its index entry instead of
 // duplicating it.
-function saveRecalledAsset(asset) {
+function saveRecalledAsset(asset, { origin } = {}) {
   const assetId = asset.asset_id || asset.id;
   if (!assetId) throw new Error('asset_id required to recall an asset');
   ensureHome();
-  fs.writeFileSync(cacheFileFor(assetId), JSON.stringify(asset, null, 2));
+  // Stamp provenance (__origin) and first-recall time (__fetched_at) onto the
+  // cached copy so they survive a reindex. A new origin overrides an old one
+  // (e.g. an asset later found to be self-published).
+  const prev = readJson(cacheFileFor(assetId), null);
+  const toStore = {
+    ...asset,
+    __origin: origin || (prev && prev.__origin) || null,
+    __fetched_at: (prev && prev.__fetched_at) || new Date().toISOString(),
+  };
+  fs.writeFileSync(cacheFileFor(assetId), JSON.stringify(toStore, null, 2));
 
-  const entry = buildIndexEntry(asset);
+  const entry = buildIndexEntry(toStore);
   const existing = recallIndex().filter((row) => row.asset_id !== assetId);
   existing.push(entry);
   fs.writeFileSync(

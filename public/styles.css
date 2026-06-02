@@ -271,6 +271,11 @@ a { color: inherit; text-decoration: none; }
 .value-prompt { margin-top: 12px; }
 .value-prompt pre { margin: 6px 0 8px; padding: 10px 12px; border-radius: 10px; background: var(--tag-bg); white-space: pre-wrap; word-break: break-word; }
 .value-prompt code { font-family: var(--mono); font-size: 0.8rem; color: inherit; }
+.asset-prov { display: flex; align-items: center; gap: 8px; margin: 6px 0; flex-wrap: wrap; }
+.prov-tag { padding: 2px 8px; border-radius: 999px; font-size: 0.7rem; font-weight: 600; }
+.prov-published { background: rgba(10,132,255,0.16); color: var(--blue); }
+.prov-acquired { background: var(--tag-bg); color: var(--muted); }
+.prov-time { font-size: 0.72rem; color: var(--muted); }
 .form-row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 12px 0; }
 .form-row .dock-message { margin: 0; }
 .filter-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; margin: 10px 0 16px; padding: 10px 14px; border-radius: 12px; background: var(--glass-soft); border: 1px solid var(--faint); }
