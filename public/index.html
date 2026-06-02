@@ -235,6 +235,16 @@ node src/index.js ui --port 4175</code></pre>
               <button class="button primary" type="submit" data-i18n="searchButton">搜索</button>
             </form>
             <p class="dock-message" id="searchModeHint"></p>
+            <details class="guide-box">
+              <summary data-i18n="obsTitle">这些检索接口有什么区别？(实测观察)</summary>
+              <ul>
+                <li data-i18n="obs1">语义 ≈ 全网检索⭐(实测重合 8/10)。</li>
+                <li data-i18n="obs2">信号搜索需精确信号词，自然语言几乎 0 命中。</li>
+                <li data-i18n="obs3">图谱 / 探索 / GDI 排序 各是独立维度。</li>
+                <li data-i18n="obs4">个性化推荐与过滤探索返回相同。</li>
+                <li data-i18n="obs5">分类 / 信号 / 课程返回的不是资产卡片。</li>
+              </ul>
+            </details>
             <p class="dock-message" id="searchMessage"></p>
             <div class="asset-results" id="searchResults"></div>
           </article>

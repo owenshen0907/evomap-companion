@@ -52,6 +52,12 @@ const I18N = {
     filterType: '类型', filterStatus: '状态', ftAll: '全部', fsSafe: '隐藏隔离(推荐)', fsPromoted: '仅 promoted（可信）', fsCandidate: '仅 candidate', fsQuarantined: '仅 quarantined', fsAll: '全部（含隔离）',
     filterOrigin: '来源', foAll: '全部来源', foPublished: '我发布的', foAcquired: '我获取的', originPublished: '我发布的', originAcquired: '我获取的', publishedAt: '发布于', acquiredAt: '获取于',
     sortBy: '排序', sortRecent: '最近添加', sortGdi: 'GDI 高到低', sortNewest: '时间 新→旧', sortOldest: '时间 旧→新', sortReuse: '复用最多',
+    obsTitle: '这些检索接口有什么区别？(实测观察)',
+    obs1: '语义 ≈ 全网检索⭐:同 query 实测结果重合 8/10。日常用「语义」即可，要召回最全用「全网检索」。',
+    obs2: '⚠️「信号搜索」用自然语言几乎 0 命中——它需要精确信号词。可优化点:UI 理应自动转换或提示。',
+    obs3: '「知识图谱 / 过滤探索 / GDI 排序」与语义结果几乎不重合，各是独立维度。',
+    obs4: '⚠️「个性化推荐」与「过滤探索」返回结果完全相同——可能同一后端，个性化暂未体现。',
+    obs5: '「分类 / 热门信号 / 精选课程」返回的不是资产卡片(而是分类名/信号词/课程)，所以列表看不到卡片，属正常。',
     recallHint: '这些资产已 fetch 到本地缓存。集成到 IDE 后，你的 Agent 会在会话开始时读取它们。资产内容是参考知识，不会自动执行。',
     publishEyebrow: 'Publish guidance', publishTitle: '引导 Agent 上传资产',
     pfTitle: '标题', pfType: '类型', pfSummary: '摘要', pfTags: '标签（逗号分隔）', pfContent: '内容', stageDraftButton: '生成草稿',
@@ -107,6 +113,12 @@ const I18N = {
     filterType: 'Type', filterStatus: 'Status', ftAll: 'All', fsSafe: 'Hide quarantined (rec.)', fsPromoted: 'promoted only (trusted)', fsCandidate: 'candidate only', fsQuarantined: 'quarantined only', fsAll: 'All (incl. quarantined)',
     filterOrigin: 'Source', foAll: 'All sources', foPublished: 'Published by me', foAcquired: 'Acquired by me', originPublished: 'Mine', originAcquired: 'Acquired', publishedAt: 'Published', acquiredAt: 'Acquired',
     sortBy: 'Sort', sortRecent: 'Recently added', sortGdi: 'GDI high→low', sortNewest: 'Time new→old', sortOldest: 'Time old→new', sortReuse: 'Most reused',
+    obsTitle: 'How do these search endpoints differ? (measured)',
+    obs1: 'Semantic ≈ Web search⭐: 8/10 overlap on the same query. Use Semantic day-to-day; use Web search for the broadest recall.',
+    obs2: '⚠️ Signals search returns ~0 for natural language — it needs precise signal terms. Improvement: the UI should convert or hint.',
+    obs3: 'Graph / Explore / GDI-ranked barely overlap with semantic — each is an independent axis.',
+    obs4: '⚠️ Recommended and Explore return identical results — likely the same backend; personalisation not yet visible.',
+    obs5: 'Categories / Popular signals / Lessons return categories / signal terms / lessons, not asset cards — so no cards show, which is expected.',
     recallHint: 'These assets are fetched into the local cache. Once integrated, your agent reads them at session start. Asset content is reference knowledge; it is never auto-executed.',
     publishEyebrow: 'Publish guidance', publishTitle: 'Guide the agent to upload assets',
     pfTitle: 'Title', pfType: 'Type', pfSummary: 'Summary', pfTags: 'Tags (comma-separated)', pfContent: 'Content', stageDraftButton: 'Stage draft',
@@ -161,6 +173,12 @@ const I18N = {
     filterType: 'タイプ', filterStatus: 'ステータス', ftAll: 'すべて', fsSafe: '隔離を非表示(推奨)', fsPromoted: 'promoted のみ', fsCandidate: 'candidate のみ', fsQuarantined: 'quarantined のみ', fsAll: 'すべて(隔離含む)',
     filterOrigin: 'ソース', foAll: 'すべて', foPublished: '自分の公開', foAcquired: '取得済み', originPublished: '公開', originAcquired: '取得', publishedAt: '公開', acquiredAt: '取得',
     sortBy: '並べ替え', sortRecent: '最近追加', sortGdi: 'GDI 高→低', sortNewest: '時間 新→旧', sortOldest: '時間 旧→新', sortReuse: '再利用が多い',
+    obsTitle: 'これらの検索の違いは？(実測)',
+    obs1: 'セマンティック ≈ Web検索⭐:同クエリで8/10一致。普段はセマンティック、最大網羅はWeb検索。',
+    obs2: '⚠️ シグナル検索は自然言語でほぼ0件——正確なシグナル語が必要。改善点:UIで変換/提示すべき。',
+    obs3: 'グラフ / 探索 / GDI順 はセマンティックとほぼ重複せず、各々独立軸。',
+    obs4: '⚠️ おすすめ と 探索 が同一結果——同じバックエンドの可能性、個別化は未反映。',
+    obs5: 'カテゴリ / 人気シグナル / レッスン は資産カードではなく分類/シグナル語/レッスンを返す(カード無表示は正常)。',
     recallHint: 'これらのアセットはローカルキャッシュに取得済みです。統合後、エージェントはセッション開始時に読み込みます。内容は参考情報で自動実行されません。',
     publishEyebrow: '公開ガイド', publishTitle: 'エージェントにアセット公開を案内',
     pfTitle: 'タイトル', pfType: 'タイプ', pfSummary: '要約', pfTags: 'タグ（カンマ区切り）', pfContent: '内容', stageDraftButton: '下書き作成',
@@ -391,13 +409,29 @@ const MODE_LABELS = {
   policy: ['免费起始包', 'Free starter', '無料スターター'],
 };
 function modeLabel(id) { const m = MODE_LABELS[id]; return m ? m[lang === 'zh' ? 0 : lang === 'ja' ? 2 : 1] : id; }
+const MODE_DESC = {
+  semantic: ['向量语义搜索——按“意思”找最相关资产，自然语言最合适。这是默认。', 'Vector semantic search — finds by meaning, best for natural language. Default.', 'ベクトル意味検索——意味で検索、自然言語に最適。デフォルト。'],
+  keyword: ['信号标签精确匹配——要用精确信号词（如 kafka-idempotency）；自然语言通常 0 命中。', 'Exact signal-tag match — use precise signal terms; natural language usually returns 0.', 'シグナル完全一致——正確なシグナル語が必要。自然言語はほぼ0件。'],
+  web: ['V2 多通道召回 + AI 重排，最强检索；结果与语义高度重合但召回更全。', 'V2 multi-channel + AI rerank, the strongest search; overlaps semantic but broader.', 'V2マルチチャネル+AI再ランク、最強。意味検索と重複するがより広い。'],
+  ranked: ['按 GDI 质量分排序，忽略关键词，返回全网高分资产。', 'Sorted by GDI quality; ignores the query, returns top assets globally.', 'GDI品質順、クエリ無視で高スコア資産を返す。'],
+  graph: ['知识图谱，按资产间关系找；结果与语义搜索差异很大。', 'Knowledge graph — finds by relationships; very different from semantic.', 'ナレッジグラフ、関係で検索。意味検索と大きく異なる。'],
+  explore: ['带过滤器浏览，不按关键词相关性排序。', 'Filtered browsing; not ranked by query relevance.', 'フィルタ閲覧、クエリ関連度では並ばない。'],
+  categories: ['列出资产分类目录（返回的是分类，不是资产卡片）。', 'Lists asset categories (returns categories, not asset cards).', 'カテゴリ一覧（資産ではなくカテゴリ）。'],
+  recommended: ['基于你的个性化推荐（需绑定节点）。', 'Personalised recommendations (needs a bound node).', 'パーソナライズ推薦（ノードのバインドが必要）。'],
+  daily: ['每日策划精选 feed。', 'Daily curated feed.', '日次キュレーションフィード。'],
+  trending: ['热门资产（与高分高度相关）。', 'Trending assets (closely tracks high GDI).', 'トレンド資産（高スコアと高相関）。'],
+  signals: ['热门信号词（触发标签，不是资产）。', 'Popular signal terms (trigger tags, not assets).', '人気シグナル語（トリガータグ、資産ではない）。'],
+  lessons: ['精选课程 / 经验集。', 'Curated lessons.', 'キュレーションされたレッスン。'],
+  list: ['列出已晋升（promoted）的资产。', 'Lists promoted assets.', 'promoted 資産の一覧。'],
+};
+function modeDesc(id) { const m = MODE_DESC[id]; return m ? m[lang === 'zh' ? 0 : lang === 'ja' ? 2 : 1] : ''; }
 function modeSpec(id) { return DISCOVERY_MODES.find((m) => m.id === id) || {}; }
 function updateSearchModeHint() {
   const s = modeSpec(SEARCH_MODE);
-  const parts = [s.q ? (lang === 'zh' ? '需关键词' : 'needs query') : (lang === 'zh' ? '无需关键词' : 'no query')];
-  if (s.auth) parts.push(lang === 'zh' ? '需已绑定节点 🔒' : 'needs bound node 🔒');
+  const tags = [s.q ? (lang === 'zh' ? '需关键词' : 'needs query') : (lang === 'zh' ? '无需关键词' : 'no query')];
+  if (s.auth) tags.push(lang === 'zh' ? '需绑定节点 🔒' : 'needs node 🔒');
   const el = document.getElementById('searchModeHint');
-  if (el) el.textContent = parts.join(' · ');
+  if (el) el.innerHTML = `${esc(modeDesc(SEARCH_MODE))} <span style="opacity:.55">· ${esc(tags.join(' · '))}</span>`;
 }
 function fillSearchModes() {
   const sel = document.getElementById('searchMode');
