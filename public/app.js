@@ -349,25 +349,20 @@ function assetCard(asset, { free = false } = {}) {
   const id = asset.asset_id || asset.id || '';
   const type = (asset.asset_type || asset.type || asset.payload?.type || 'unknown').toLowerCase();
   const title = asset.short_title || asset.title || asset.payload?.summary || asset.nl_summary || id;
-  const summary = asset.nl_summary || asset.summary || asset.payload?.summary || '';
-  const tags = (typeof asset.tags === 'string' ? asset.tags.split(',') : (asset.tags || [])).map((x) => x.trim()).filter(Boolean);
   const cached = cachedIds.has(id);
   const typeCls = type === 'gene' ? 'gene' : type === 'capsule' ? 'capsule' : 'unknown';
+  const st = asset.status || '';
+  const stBadge = st ? `<span style="font-size:.7rem;font-weight:600;color:${statusColor(st)}">● ${esc(st)}</span>` : '';
+  const gdi = typeof asset.gdi_score === 'number' ? ` <small style="opacity:.5;font-weight:400">GDI ${asset.gdi_score.toFixed(0)}</small>` : '';
+  // Cache the raw asset so 查看内容 works even for search results that aren't fetched.
+  INSIGHT_CACHE[id] = asset;
   return `<article class="asset-card" data-asset-id="${esc(id)}">
-    <div class="asset-head">
-      <span class="asset-type ${typeCls}">${esc(type)}</span>
-      <h4>${esc(title)}</h4>
-      ${free ? '<span class="badge-free">FREE</span>' : ''}
-      ${cached ? `<span class="badge-cached">${t('recalled')}</span>` : ''}
-    </div>
-    ${summary ? `<p class="asset-summary">${esc(summary)}</p>` : ''}
-    <div class="asset-meta">${tags.map((tg) => `<span class="asset-tag">${esc(tg)}</span>`).join('')}</div>
-    <div class="asset-id">${esc(id)}</div>
+    <div class="asset-head"><span class="asset-type ${typeCls}">${esc(type)}</span>${stBadge}${gdi}${free ? ' <span class="badge-free">FREE</span>' : ''}${cached ? ` <span class="badge-cached">${t('recalled')}</span>` : ''}<h4>${esc(title)}</h4></div>
     <div class="asset-foot">
       <span class="spacer"></span>
       ${(STATE && STATE.canVote) ? `<button class="button small ghost" data-action="vote-up" data-id="${esc(id)}" title="${t('voteUp')}">👍</button><button class="button small ghost" data-action="vote-down" data-id="${esc(id)}" title="${t('voteDown')}">👎</button>` : ''}
-      ${cached ? `<button class="button small secondary" data-action="view" data-id="${esc(id)}">${t('viewContent')}</button>` : ''}
-      <button class="button small primary" data-action="fetch" data-id="${esc(id)}" ${cached ? 'disabled' : ''}>${cached ? t('recalled') : t('fetchAsset')}</button>
+      <button class="button small secondary" data-action="view" data-id="${esc(id)}">${t('viewContent')}</button>
+      ${cached ? '' : `<button class="button small primary" data-action="fetch" data-id="${esc(id)}">${t('fetchAsset')}</button>`}
     </div>
   </article>`;
 }
@@ -506,11 +501,9 @@ function renderRecall(recall) {
       const gdi = typeof a.gdi_score === 'number' ? ` <small style="opacity:.5;font-weight:400">GDI ${a.gdi_score.toFixed(0)}</small>` : '';
       return `<article class="asset-card" data-asset-id="${esc(a.asset_id)}">
         <div class="asset-head"><span class="asset-type ${typeCls}">${esc(a.type)}</span>${stBadge}${gdi}<h4>${esc(a.title)}${a.translated ? ` <small style="opacity:.55;font-weight:400">· ${t('machineTranslated')}</small>` : ''}</h4></div>
-        ${a.summary ? `<p class="asset-summary">${esc(a.summary)}</p>` : ''}
-        <div class="asset-meta">${(a.tags || []).map((tg) => `<span class="asset-tag">${esc(tg)}</span>`).join('')}</div>
         ${provBadge(a)}
-        <div class="asset-id">${esc(a.asset_id)}</div>
         <div class="asset-foot"><span class="spacer"></span>
+          ${(STATE && STATE.canVote) ? `<button class="button small ghost" data-action="vote-up" data-id="${esc(a.asset_id)}" title="${t('voteUp')}">👍</button><button class="button small ghost" data-action="vote-down" data-id="${esc(a.asset_id)}" title="${t('voteDown')}">👎</button>` : ''}
           <button class="button small secondary" data-action="view" data-id="${esc(a.asset_id)}">${t('viewContent')}</button>
           <button class="button small ghost" data-action="remove" data-id="${esc(a.asset_id)}">${t('remove')}</button>
         </div>
@@ -540,6 +533,7 @@ async function viewAsset(id, preMeta) {
     const cache = await getJSON('/api/recall?lang=' + encodeURIComponent(lang));
     meta = normMeta((cache.assets || []).find((a) => a.asset_id === id));
   }
+  if (!meta && INSIGHT_CACHE[id]) meta = normMeta(INSIGHT_CACHE[id]);
   const aid = (meta && meta.asset_id) || id;
   $('detailModalTitle').textContent = meta ? meta.title : id;
   const head = meta
