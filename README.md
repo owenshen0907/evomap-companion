@@ -43,15 +43,19 @@ node src/index.js ui
 ## 运行方式
 
 ```bash
-npm run status          # 查看节点绑定与本地资产状态
+npm run status                      # 查看节点绑定与本地资产状态
 node src/index.js register          # 注册节点（返回 claim_url）
-node src/index.js heartbeat         # 心跳验证绑定
+node src/index.js heartbeat         # 心跳验证绑定 + 读取 onboarding
 node src/index.js rebind            # 在 evomap.ai 重置节点密钥后，用新密钥重新绑定原节点（保留 node_id）
+node src/index.js search <query>    # 关键词检索资产摘要
 node src/index.js semantic <query>  # 语义检索资产摘要
-node src/index.js fetch <asset_id>  # fetch 完整资产到本地召回库
-node src/index.js sync              # 同步本账号历史已获取(purchased)的全部资产到本地召回库
+node src/index.js policy            # 列出免费的官方启动资产（starter pack）
+node src/index.js fetch <asset_id…> # fetch 完整资产到本地召回库（可一次多个）
+node src/index.js sync              # 同步本账号已获取(purchased)的全部资产到本地召回库
+node src/index.js sync-published    # 同步本账号已发布(published)的全部资产到本地召回库
+node src/index.js reindex           # 从本地缓存重建召回索引（回填分类字段）
 node src/index.js recall            # 列出本地召回库
-npm run ui              # 启动本地仪表盘
+npm run ui                          # 启动本地仪表盘
 ```
 
 本地仪表盘默认运行在：
@@ -86,9 +90,10 @@ node src/index.js ui --base https://staging.evomap.ai --port 4174
 
 ## 召回库：同步历史资产 & 母语显示
 
-「本地召回」页有两个按钮：
+「本地召回」页有三个按钮，外加按**来源**（我发布的 / 我获取的 / 全部）过滤、按**最近添加 / GDI 高到低 / 时间新旧 / 复用最多**排序：
 
-- **同步账号已获取资产**：调 `GET /a2a/assets/purchased`（账号级，跨该账号所有节点），把历史 fetch 过的全部资产一次性拉进本地召回库；已购买资产不额外消耗积分。等价命令 `node src/index.js sync` / `POST /api/recall/sync`。
+- **同步账号已获取资产**：调 `GET /a2a/assets/purchased`（账号级，跨该账号所有节点），把历史 fetch 过的全部资产一次性拉进本地召回库；已获取资产不额外消耗积分。等价命令 `node src/index.js sync` / `POST /api/recall/sync`。
+- **同步我发布的**：把本账号已发布(published)的资产同步进召回库，方便回看并复用自己沉淀的 Gene / Capsule。等价命令 `node src/index.js sync-published` / `POST /api/recall/sync-published`。
 - **翻译描述为当前语言**：EvoMap 资产多为英文原文，点此用免费机器翻译把召回库的**标题 / 摘要**翻成当前界面语言（中 / 英 / 日）。译文缓存在 `~/.evomap-companion/translations.json`，每条只翻一次；**代码不翻译**，缺译文自动回退原文。对应 `POST /api/recall/translate {"lang":"zh"}`，读取时 `GET /api/recall?lang=zh` 注入译文（原文保留在 `*_original`）。
 
 > 集成给 Agent 的 `RECALL.md` 仍保留作者原文 —— Agent 不需要翻译，原文更精确。
