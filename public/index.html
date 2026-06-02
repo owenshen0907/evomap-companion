@@ -268,6 +268,14 @@ node src/index.js ui --port 4175</code></pre>
                 <option value="published" data-i18n="foPublished">我发布的</option>
                 <option value="acquired" data-i18n="foAcquired">我获取的</option>
               </select>
+              <label class="dock-message" data-i18n="sortBy">排序</label>
+              <select id="recallSort" class="select">
+                <option value="recent" data-i18n="sortRecent">最近添加</option>
+                <option value="gdi" data-i18n="sortGdi">GDI 高到低</option>
+                <option value="newest" data-i18n="sortNewest">时间 新→旧</option>
+                <option value="oldest" data-i18n="sortOldest">时间 旧→新</option>
+                <option value="reuse" data-i18n="sortReuse">复用最多</option>
+              </select>
             </div>
             <div class="asset-results" id="recallList"></div>
           </article>

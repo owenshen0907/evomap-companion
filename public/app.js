@@ -51,6 +51,7 @@ const I18N = {
     translateRecall: '翻译描述为当前语言', translating: '翻译中…', machineTranslated: '机翻',
     filterType: '类型', filterStatus: '状态', ftAll: '全部', fsSafe: '隐藏隔离(推荐)', fsPromoted: '仅 promoted（可信）', fsCandidate: '仅 candidate', fsQuarantined: '仅 quarantined', fsAll: '全部（含隔离）',
     filterOrigin: '来源', foAll: '全部来源', foPublished: '我发布的', foAcquired: '我获取的', originPublished: '我发布的', originAcquired: '我获取的', publishedAt: '发布于', acquiredAt: '获取于',
+    sortBy: '排序', sortRecent: '最近添加', sortGdi: 'GDI 高到低', sortNewest: '时间 新→旧', sortOldest: '时间 旧→新', sortReuse: '复用最多',
     recallHint: '这些资产已 fetch 到本地缓存。集成到 IDE 后，你的 Agent 会在会话开始时读取它们。资产内容是参考知识，不会自动执行。',
     publishEyebrow: 'Publish guidance', publishTitle: '引导 Agent 上传资产',
     pfTitle: '标题', pfType: '类型', pfSummary: '摘要', pfTags: '标签（逗号分隔）', pfContent: '内容', stageDraftButton: '生成草稿',
@@ -105,6 +106,7 @@ const I18N = {
     translateRecall: 'Translate descriptions', translating: 'Translating…', machineTranslated: 'MT',
     filterType: 'Type', filterStatus: 'Status', ftAll: 'All', fsSafe: 'Hide quarantined (rec.)', fsPromoted: 'promoted only (trusted)', fsCandidate: 'candidate only', fsQuarantined: 'quarantined only', fsAll: 'All (incl. quarantined)',
     filterOrigin: 'Source', foAll: 'All sources', foPublished: 'Published by me', foAcquired: 'Acquired by me', originPublished: 'Mine', originAcquired: 'Acquired', publishedAt: 'Published', acquiredAt: 'Acquired',
+    sortBy: 'Sort', sortRecent: 'Recently added', sortGdi: 'GDI high→low', sortNewest: 'Time new→old', sortOldest: 'Time old→new', sortReuse: 'Most reused',
     recallHint: 'These assets are fetched into the local cache. Once integrated, your agent reads them at session start. Asset content is reference knowledge; it is never auto-executed.',
     publishEyebrow: 'Publish guidance', publishTitle: 'Guide the agent to upload assets',
     pfTitle: 'Title', pfType: 'Type', pfSummary: 'Summary', pfTags: 'Tags (comma-separated)', pfContent: 'Content', stageDraftButton: 'Stage draft',
@@ -158,6 +160,7 @@ const I18N = {
     translateRecall: '説明を翻訳', translating: '翻訳中…', machineTranslated: '機械翻訳',
     filterType: 'タイプ', filterStatus: 'ステータス', ftAll: 'すべて', fsSafe: '隔離を非表示(推奨)', fsPromoted: 'promoted のみ', fsCandidate: 'candidate のみ', fsQuarantined: 'quarantined のみ', fsAll: 'すべて(隔離含む)',
     filterOrigin: 'ソース', foAll: 'すべて', foPublished: '自分の公開', foAcquired: '取得済み', originPublished: '公開', originAcquired: '取得', publishedAt: '公開', acquiredAt: '取得',
+    sortBy: '並べ替え', sortRecent: '最近追加', sortGdi: 'GDI 高→低', sortNewest: '時間 新→旧', sortOldest: '時間 旧→新', sortReuse: '再利用が多い',
     recallHint: 'これらのアセットはローカルキャッシュに取得済みです。統合後、エージェントはセッション開始時に読み込みます。内容は参考情報で自動実行されません。',
     publishEyebrow: '公開ガイド', publishTitle: 'エージェントにアセット公開を案内',
     pfTitle: 'タイトル', pfType: 'タイプ', pfSummary: '要約', pfTags: 'タグ（カンマ区切り）', pfContent: '内容', stageDraftButton: '下書き作成',
@@ -439,6 +442,7 @@ async function fetchAsset(id) {
 
 let RECALL_ASSETS = [];
 const RECALL_FILTER = { type: '', status: 'safe', origin: '' };
+let RECALL_SORT = 'recent';
 
 function statusColor(status) {
   return status === 'promoted' ? '#3fb950' : status === 'quarantined' ? '#f85149' : status === 'candidate' ? '#d29922' : '#8b949e';
@@ -475,10 +479,24 @@ function applyRecallFilter(assets) {
   });
 }
 
+// Sort the (already filtered) recall list. 'recent' keeps the library's own
+// order (newest recall first). Time key prefers the asset's own date.
+function sortRecall(assets) {
+  const arr = assets.slice();
+  const tkey = (a) => String(a.created_at || a.acquired_at || a.fetched_at || '');
+  switch (RECALL_SORT) {
+    case 'gdi': return arr.sort((x, y) => (y.gdi_score || 0) - (x.gdi_score || 0));
+    case 'newest': return arr.sort((x, y) => tkey(y).localeCompare(tkey(x)));
+    case 'oldest': return arr.sort((x, y) => tkey(x).localeCompare(tkey(y)));
+    case 'reuse': return arr.sort((x, y) => (y.reuse_count || 0) - (x.reuse_count || 0));
+    default: return arr;
+  }
+}
+
 function renderRecall(recall) {
   if (recall) RECALL_ASSETS = (recall.assets) || [];
   const total = RECALL_ASSETS.length;
-  const assets = applyRecallFilter(RECALL_ASSETS);
+  const assets = sortRecall(applyRecallFilter(RECALL_ASSETS));
   $('recallPill').textContent = assets.length === total ? `${total}` : `${assets.length}/${total}`;
   $('recallList').innerHTML = assets.length
     ? assets.map((a) => {
@@ -745,6 +763,7 @@ function wire() {
   $('recallTypeFilter').addEventListener('change', (e) => { RECALL_FILTER.type = e.target.value; renderRecall(); });
   $('recallStatusFilter').addEventListener('change', (e) => { RECALL_FILTER.status = e.target.value; renderRecall(); });
   $('recallOriginFilter').addEventListener('change', (e) => { RECALL_FILTER.origin = e.target.value; renderRecall(); });
+  $('recallSort').addEventListener('change', (e) => { RECALL_SORT = e.target.value; renderRecall(); });
   // refresh
   $('refreshButton').addEventListener('click', () => { refreshAll(); loadSelf(); });
   $('copyPromptButton').addEventListener('click', () => { const txt = (document.getElementById('valuePromptText') || {}).textContent || ''; if (navigator.clipboard) { navigator.clipboard.writeText(txt).then(() => toast(t('copied'), 'ok')).catch(() => toast('copy failed', 'error')); } else { toast(txt, ''); } });
